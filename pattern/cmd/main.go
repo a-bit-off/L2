@@ -1,9 +1,13 @@
 package main
 
-import "pattern"
+import (
+	"pattern"
+	"pattern/builder"
+)
 
 func main() {
 	//pattern.RunFacade()
 	//pattern.RunBuilder()
-	pattern.RunBuilderV2()
+	builder.RunBuilderV2()
+	pattern.RunStrategy()
 }
