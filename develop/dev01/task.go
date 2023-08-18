@@ -1,5 +1,3 @@
-package main
-
 /*
 === Базовая задача ===
 
@@ -12,6 +10,21 @@ package main
 Программа должна проходить проверки go vet и golint.
 */
 
-func main() {
+package main
 
+import (
+	"fmt"
+	"log"
+
+	"github.com/beevik/ntp"
+)
+
+func main() {
+	// Получаем текущее точное время с использованием библиотеки NTP
+	ntpTime, err := ntp.Time("pool.ntp.org")
+	if err != nil {
+		log.Fatal("Ошибка при получении времени:", err)
+	}
+
+	fmt.Println("Точное время:", ntpTime.Format(time.RFC1123Z))
 }
