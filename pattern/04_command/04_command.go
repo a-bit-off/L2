@@ -27,8 +27,24 @@ Invoker умеет складывать команды в стопку и ини
 ConcreteCommand содержит в себе запросы к Receiver, которые тот должен выполнять.
 
 В свою очередь Receiver содержит только набор действий (Actions), которые выполняются при обращении к ним из ConcreteCommand.
+
+Плюсы использования паттерна "Команда":
+- Разделение отправителя и получателя: Команда инкапсулирует запрос на выполнение операции и отделяет отправителя запроса от получателя.
+- Поддержка отмены операций: Команды могут иметь методы отмены, что позволяет отменять выполненные операции.
+- Поддержка истории выполненных операций: Команды могут сохраняться в истории, что позволяет восстанавливать предыдущие состояния системы.
+
+Минусы использования паттерна "Команда":
+- Усложнение кода: Внедрение команд может привести к увеличению количества классов и усложнению структуры кода.
+- Дополнительные затраты на память: Использование истории выполненных команд может потребовать дополнительной памяти для их хранения.
+
+Реальные примеры использования паттерна "Команда" на практике:
+- Редактор текста: Команды могут использоваться для выполнения операций редактирования текста, таких как вставка, удаление, отмена/повтор и т.д.
+- Умный дом: Команды могут использоваться для управления различными устройствами в умном доме, такими как включение/выключение света, регулировка температуры и т.д.
+- Интерфейс пользователя: Команды могут использоваться для выполнения операций, связанных с действиями пользователя, такими как нажатие кнопок, выбор пунктов меню и т.д.
 */
 package main
+
+import "fmt"
 
 // Предположим, у нас есть система умного дома, которая управляет различными устройствами, такими как свет, телевизор,
 // кондиционери т.д. Мы хотим реализовать функционал управления устройствами с помощью паттерна "Команда".
@@ -97,6 +113,32 @@ func (c TVOffCommand) Undo() {
 	c.tv.On()
 }
 
+// TV Turn Up Volume Command
+type TVTurnUpVolumeCommand struct {
+	tv *TV
+}
+
+func (c TVTurnUpVolumeCommand) Execute() {
+	c.tv.UpVolume()
+}
+
+func (c TVTurnUpVolumeCommand) Undo() {
+	c.tv.DownVolume()
+}
+
+// TV Turn Down Volume Command
+type TVTurnDownVolumeCommand struct {
+	tv *TV
+}
+
+func (c TVTurnDownVolumeCommand) Execute() {
+	c.tv.DownVolume()
+}
+
+func (c TVTurnDownVolumeCommand) Undo() {
+	c.tv.UpVolume()
+}
+
 // реализуем объекты устройств:
 
 // Light:
@@ -104,25 +146,34 @@ type Light struct {
 	isOn bool
 }
 
-func (l Light) On() {
+func (l *Light) On() {
 	l.isOn = true
 }
 
-func (l Light) Off() {
+func (l *Light) Off() {
 	l.isOn = false
 }
 
 // TV:
 type TV struct {
-	isOn bool
+	isOn   bool
+	volume int
 }
 
-func (t TV) On() {
+func (t *TV) On() {
 	t.isOn = true
 }
 
-func (t TV) Off() {
+func (t *TV) Off() {
 	t.isOn = false
+}
+
+func (t *TV) UpVolume() {
+	t.volume++
+}
+
+func (t *TV) DownVolume() {
+	t.volume--
 }
 
 // main
@@ -135,14 +186,33 @@ func main() {
 	tvOnCommand := &TVOnCommand{tv: tv}
 	tvOffCommand := &TVOffCommand{tv: tv}
 
+	tvTurnUpVolumeCommand := TVTurnUpVolumeCommand{tv: tv}
+	tvTurnDownVolumeCommand := TVTurnDownVolumeCommand{tv: tv}
+
 	// Выполняем команды
-	lightOnCommand.Execute()  // Включить свет
+	lightOnCommand.Execute() // Включить свет
+	fmt.Println("light:", light)
+
 	lightOffCommand.Execute() // Выключить свет
+	fmt.Println("light:", light)
 
-	tvOnCommand.Execute()  // Включить телевизор
+	tvOnCommand.Execute() // Включить телевизор
+	fmt.Println("tv:", tv)
+
 	tvOffCommand.Execute() // Выключить телевизор
+	fmt.Println("tv:", tv)
 
-	// Отменяем последнюю выполненную команду
-	lightOffCommand.Undo() // Вернуть состояние света на "включено"
-	tvOffCommand.Undo()    // Вернуть состояние телевизора на "включено"
+	tvTurnUpVolumeCommand.Execute() // Повысить громкость
+	fmt.Println("tv:", tv)
+
+	tvTurnDownVolumeCommand.Execute() // Понизить громкость
+	fmt.Println("tv:", tv)
+
+	// Отменяем последние выполненные команды
+	lightOffCommand.Undo()         // Вернуть состояние света на "включено"
+	tvOffCommand.Undo()            // Вернуть состояние телевизора на "включено"
+	tvTurnDownVolumeCommand.Undo() // Вернуть состояние телевизора прежняя громкость
+
+	fmt.Println("light:", light)
+	fmt.Println("tv:", tv)
 }
