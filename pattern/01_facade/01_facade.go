@@ -22,7 +22,7 @@ https://en.wikipedia.org/wiki/Facade_pattern
 Бибилиотеки и фраймворки
 Управление сложными системами (умный дом, и тд.)
 */
-package pattern
+package main
 
 import "fmt"
 
@@ -57,8 +57,8 @@ func (a *Affine) Scale() {
 	fmt.Println("Figure scaled")
 }
 
-// Run pattern
-func RunFacade() {
+// main
+func main() {
 	facade := NewFacde()
 
 	facade.parse.ParseFile("myFile")

@@ -1,7 +1,7 @@
-package pattern
+package _8_state
 
 /*
-	Реализовать паттерн «фабричный метод».
+	Реализовать паттерн «состояние».
 Объяснить применимость паттерна, его плюсы и минусы, а также реальные примеры использования данного примера на практике.
-	https://en.wikipedia.org/wiki/Factory_method_pattern
+	https://en.wikipedia.org/wiki/State_pattern
 */

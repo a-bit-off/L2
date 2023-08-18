@@ -20,7 +20,7 @@ https://en.wikipedia.org/wiki/Visitor_pattern
 
 */
 
-package pattern
+package _3_visitor
 
 import "fmt"
 

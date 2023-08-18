@@ -1,4 +1,4 @@
-package pattern
+package _5_chain_of_resp
 
 /*
 	Реализовать паттерн «цепочка вызовов».
