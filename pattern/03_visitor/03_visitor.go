@@ -11,47 +11,132 @@ https://en.wikipedia.org/wiki/Visitor_pattern
 
 Требуется для реализации:
 1. Абстрактный класс Visitor, описывающий интерфейс визитера;
-2. Класс ConcreteVisitor, реализующий конкретного визитера. Реализует методы для обхода конкретного элемента;
+2. Класс People, реализующий конкретного визитера. Реализует методы для обхода конкретного элемента;
 3. Класс ObjectStructure, реализующий структуру(коллекцию), в которой хранятся элементы для обхода;
 4. Абстрактный класс Element, реализующий интерфейс элементов структуры;
 5. Класс ElementA, реализующий элемент структуры;
 6. Класс ElementB, реализующий элемент структуры.
 
 
+Применимость паттерна "Посетитель":
+- Когда необходимо добавить новые операции к объектам, но изменение их классов нежелательно или невозможно.
+- Когда имеется сложная структура объектов, и необходимо выполнить различные операции над каждым объектом,
+	не нарушая инкапсуляцию.
+
+Плюсы использования паттерна "Посетитель":
+- Расширяемость: Паттерн позволяет добавлять новые операции к объектам без изменения их классов, что делает систему
+	более гибкой и расширяемой.
+- Разделение ответственности: Операции, связанные с объектами, выносятся в отдельные классы посетителей, что позволяет
+	разделить ответственность между различными классами.
+- Упрощение добавления новых операций: Добавление новой операции сводится к созданию нового класса посетителя и
+	реализации соответствующего метода, что упрощает расширение функциональности.
+
+Минусы использования паттерна "Посетитель":
+- Усложнение кода: Паттерн может привести к увеличению количества классов и усложнению структуры кода, особенно в
+	случае большого количества операций и объектов.
+- Нарушение инкапсуляции: Посетитель может иметь доступ к приватным членам объекта, что нарушает принцип инкапсуляции.
+
+Реальные примеры использования паттерна "Посетитель":
+- Обработка документов: Посетитель может использоваться для обработки различных элементов документа, таких как абзацы,
+	таблицы, изображения и т.д. Каждый элемент может иметь свою собственную операцию, которую выполняет посетитель.
+- Анализ и обработка AST (Abstract Syntax Tree): Посетитель может использоваться для анализа и обработки абстрактного
+	синтаксического дерева, которое представляет структуру программы.
+- Посещение коллекций объектов: Посетитель может использоваться для выполнения операций над каждым объектом в коллекции,
+	не изменяя классы объектов.
+
 */
 
-package _3_visitor
+package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
-// Абстрактный класс Visitor, описывающий интерфейс визитера;
+// определим интерфейс "Посетитель", который будет иметь методы для посещения каждого типа фигуры:
 type Visitor interface {
-	VisitBar()
-	VisitCinema()
-	VisitEmbassy()
+	VisitCircle(circle Circle)
+	VisitRectangle(rectangle Rectangle)
+	VisitTriangle(triangle Triangle)
 }
 
-// Класс ConcreteVisitor, реализующий конкретного визитера. Реализует методы для обхода конкретного элемента;
-type ConcreteVisitor struct{}
-
-func (cv *ConcreteVisitor) VisitBar() {
-	fmt.Println("Visit Bar!")
+// определим интерфейс "Фигура", который будет иметь метод "Accept" для принятия посетителя:
+type Figure interface {
+	Accept(visitor Visitor)
 }
 
-func (cv *ConcreteVisitor) VisitCinema() {
-	fmt.Println("Visit Cinema!")
+// реализуем каждый тип фигуры и их метод "Accept":
+
+// круг
+type Circle struct {
+	Radius float64
 }
 
-func (cv *ConcreteVisitor) VisitEmbassy() {
-	fmt.Println("Visit Embassy!")
+func (c Circle) Accept(visitor Visitor) {
+	visitor.VisitCircle(c)
 }
 
-// Класс ObjectStructure, реализующий структуру(коллекцию), в которой хранятся элементы для обхода;
-type City struct {
-	places []Place
+// прямоугольник
+type Rectangle struct {
+	Width  float64
+	Height float64
 }
 
-// Абстрактный класс Element, реализующий интерфейс элементов структуры;
-type Place interface {
-	Accept(v Visitor) string
+func (r Rectangle) Accept(visitor Visitor) {
+	visitor.VisitRectangle(r)
+}
+
+// триугольник
+type Triangle struct {
+	Base   float64
+	Height float64
+}
+
+func (t Triangle) Accept(visitor Visitor) {
+	visitor.VisitTriangle(t)
+}
+
+// реализуем конкретного посетителя, который будет выполнять операцию подсчета площади каждой фигуры:
+type AreaVisitor struct {
+	TotalArea float64
+}
+
+func (v *AreaVisitor) VisitCircle(circle Circle) {
+	area := math.Pi * circle.Radius * circle.Radius
+	v.TotalArea += area
+}
+
+func (v *AreaVisitor) VisitRectangle(rectangle Rectangle) {
+	area := rectangle.Width * rectangle.Height
+	v.TotalArea += area
+}
+
+func (v *AreaVisitor) VisitTriangle(triangle Triangle) {
+	area := triangle.Base * triangle.Height * 0.5
+	v.TotalArea += area
+}
+
+// main
+func main() {
+	figures := []Figure{
+		Circle{
+			Radius: 5,
+		},
+		Rectangle{
+			Width:  4,
+			Height: 6,
+		},
+		Triangle{
+			Base:   2,
+			Height: 7,
+		},
+	}
+
+	visitor := &AreaVisitor{}
+
+	for _, figure := range figures {
+		figure.Accept(visitor)
+	}
+
+	fmt.Println("Total area:", visitor.TotalArea)
 }
