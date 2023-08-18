@@ -23,13 +23,37 @@ https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern
 Обратите внимание, что вместо хранения ссылок на всех кандидатов-получателей запроса, каждый отправитель хранит
 единственную ссылку на начало цепочки, а каждый получатель имеет единственную ссылку на своего преемника - последующий
 элемент в цепочке.
+
+Применимость паттерна:
+  - Когда имеется более одного объекта, который может обработать запрос, и система должна автоматически определить,
+    какой объект должен обработать запрос.
+  - Когда набор объектов, способных обработать запрос, должен быть определен динамически.
+  - Когда необходимо отправить запрос нескольким объектам без явного указания получателя.
+
+Плюсы паттерна:
+  - Уменьшает зависимость между отправителем запроса и его получателем, так как отправитель не знает, кто будет
+    обрабатывать запросы и какие объекты находятся в цепочке.
+  - Позволяет гибко настраивать и изменять порядок обработки запросов в цепочке.
+  - Упрощает добавление новых обработчиков в цепочку без изменения существующего кода.
+
+Минусы паттерна:
+- Запрос может быть не обработан, если достигнут конец цепочки и ни один из обработчиков не смог его обработать.
+- Запрос может быть обработан несколькими обработчиками, что может привести к нежелательным или непредсказуемым результатам.
+
+Реальные примеры использования паттерна "цепочка вызовов" включают:
+- Обработка событий в пользовательских интерфейсах, где каждый элемент интерфейса может обрабатывать событие по своей логике.
+- Фильтры веб-приложений, где каждый фильтр может обрабатывать запрос и передавать его следующему фильтру в цепочке.
+- Логирование, где каждый логгер может обрабатывать сообщение и передавать его следующему логгеру в цепочке для записи в разные источники.
 */
 package main
+
+import "fmt"
 
 // Предположим, у нас есть система обработки текстовых сообщений, где каждое сообщение проходит через цепочку
 // обработчиков для выполнения различных операций над текстом.
 
 var isSpellingCorrect bool = true
+var isProfanity bool = true
 
 // Определим интерфейс обработчика сообщений:
 type MessageHandler interface {
@@ -38,23 +62,60 @@ type MessageHandler interface {
 }
 
 // Реализуем конкретные обработчики сообщений
+
+// Проверка орфографии
 type SpellCheckHandler struct {
 	next MessageHandler
 }
 
-func (h SpellCheckHandler) SetNext(handler MessageHandler) {
+func (h *SpellCheckHandler) SetNext(handler MessageHandler) {
 	h.next = handler
 }
 
-func (h SpellCheckHandler) Handle(message string) string {
+func (h *SpellCheckHandler) Handle(message string) string {
 	if isSpellingCorrect {
+		fmt.Println("Spelling is correct")
 		return message
 	} else if h.next != nil {
+		fmt.Println("Spelling is not correct and no last handler")
 		return h.next.Handle(message)
 	}
+	fmt.Println("Spelling is not correct and last handler")
+	return message
+}
+
+// Проверка ненормативной лексики
+type ProfanityFilterHandler struct {
+	next MessageHandler
+}
+
+func (h *ProfanityFilterHandler) SetNext(handler MessageHandler) {
+	h.next = handler
+}
+
+func (h *ProfanityFilterHandler) Handle(message string) string {
+	if isProfanity {
+		fmt.Println("Profanity is correct")
+		return message
+	} else if h.next != nil {
+		fmt.Println("Profanity is not correct and no last handler")
+		return h.next.Handle(message)
+	}
+	fmt.Println("Profanity is not correct and last handler")
 	return message
 }
 
 func main() {
+	isSpellingCorrect = false
+	isProfanity = true
+	s := &SpellCheckHandler{}
+	p := &ProfanityFilterHandler{}
 
+	s.SetNext(p)
+
+	message := "Test message!"
+
+	processedMessage := s.Handle(message)
+
+	fmt.Println(processedMessage)
 }
