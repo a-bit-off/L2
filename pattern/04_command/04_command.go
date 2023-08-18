@@ -211,7 +211,7 @@ func main() {
 	// Отменяем последние выполненные команды
 	lightOffCommand.Undo()         // Вернуть состояние света на "включено"
 	tvOffCommand.Undo()            // Вернуть состояние телевизора на "включено"
-	tvTurnDownVolumeCommand.Undo() // Вернуть состояние телевизора прежняя громкость
+	tvTurnDownVolumeCommand.Undo() // Вернуть состояние телевизора на "прежняя громкость"
 
 	fmt.Println("light:", light)
 	fmt.Println("tv:", tv)
