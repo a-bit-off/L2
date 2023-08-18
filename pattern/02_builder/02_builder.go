@@ -1,7 +1,9 @@
 /*
-Реализовать паттерн «строитель».
+	Реализовать паттерн «строитель».
+
 Объяснить применимость паттерна, его плюсы и минусы, а также реальные примеры использования данного примера на практике.
-https://en.wikipedia.org/wiki/Builder_pattern
+
+	https://en.wikipedia.org/wiki/Builder_pattern
 
 Тип:		Порождающий
 Уровень: 	Объектный
@@ -16,11 +18,11 @@ https://en.wikipedia.org/wiki/Builder_pattern
 нам нужен паттерн Builder.
 
 Требуется для реализации:
-1. Базовый абстрактный класс Builder, который описывает интерфейс строителя, те команды, которые он обязан выполнять;
-2. Класс Director, который будет распоряжаться строителем и отдавать ему команды в нужном порядке,
-	а строитель будет их выполнять;
-3. Класс сложного объекта Product.
-4. Класс ConcreteBuilder, который реализует интерфейс строителя и взаимодействует со сложным объектом;
+ 1. Базовый абстрактный класс Builder, который описывает интерфейс строителя, те команды, которые он обязан выполнять;
+ 2. Класс Director, который будет распоряжаться строителем и отдавать ему команды в нужном порядке,
+    а строитель будет их выполнять;
+ 3. Класс сложного объекта Product.
+ 4. Класс ConcreteBuilder, который реализует интерфейс строителя и взаимодействует со сложным объектом;
 
 Применение паттерна "Строитель" полезно в следующих случаях:
 1. Когда требуется создание сложных объектов с различными вариациями и конфигурациями.
@@ -44,75 +46,115 @@ https://en.wikipedia.org/wiki/Builder_pattern
 2. Конструирование объектов баз данных:
 В ORM (Object-Relational Mapping) системах, паттерн "Строитель" может быть использован для создания запросов к
 базе данных, где каждый компонент запроса может быть добавлен поэтапно.
-
 */
-
-package pattern
+package main
 
 import "fmt"
 
-// Базовый абстрактный класс Builder, который описывает интерфейс строителя, те команды, которые он обязан выполнять;
-type Builder interface {
-	PourTheFoundation()     // залить фундамент
-	BuildUpTheWalls()       // возвести стены
-	PutUpRoof()             // поставить крышу
-	InsertWindowsAndDoors() // вставить окна и двери
-}
-
-// Класс Director, который будет распоряжаться строителем и отдавать ему команды в нужном порядке
-type Director struct {
-	builder Builder
-}
-
-func NewDirector(builder Builder) *Director {
-	return &Director{builder: builder}
-}
-
-func (d *Director) Construct() {
-	d.builder.PourTheFoundation()
-	d.builder.BuildUpTheWalls()
-	d.builder.PutUpRoof()
-	d.builder.InsertWindowsAndDoors()
-}
-
 // Класс сложного объекта Product.
-type Product struct {
-	house string
+type Computer struct {
+	CPU string
+	RAM int
+	MB  string
 }
 
-func NewProduct(house string) *Product {
-	return &Product{house: house}
+// Базовый абстрактный класс Builder, который описывает интерфейс строителя, те команды, которые он обязан выполнять;
+type ComputerBuilderI interface {
+	CPU(val string) ComputerBuilderI
+	RAM(val int) ComputerBuilderI
+	MB(val string) ComputerBuilderI
+
+	Build() Computer
 }
 
 // Класс ConcreteBuilder, который реализует интерфейс строителя и взаимодействует со сложным объектом;
-type ConcreteBuilder struct {
-	product Product
+type ComputerBuilder struct {
+	cpu string
+	ram int
+	mb  string
 }
 
-func NewConcreteBuilder(product Product) *ConcreteBuilder {
-	return &ConcreteBuilder{product: product}
+func NewComputerBuilder() ComputerBuilderI {
+	return ComputerBuilder{}
 }
 
-func (cb *ConcreteBuilder) PourTheFoundation() {
-	fmt.Println("Pour The Foundation - done!")
+func (cb ComputerBuilder) CPU(val string) ComputerBuilderI {
+	cb.cpu = val
+	return cb
 }
 
-func (cb *ConcreteBuilder) BuildUpTheWalls() {
-	fmt.Println("Build Up The Walls - done!")
+func (cb ComputerBuilder) RAM(val int) ComputerBuilderI {
+	cb.ram = val
+	return cb
 }
 
-func (cb *ConcreteBuilder) PutUpRoof() {
-	fmt.Println("Put Up Roof - done!")
+func (cb ComputerBuilder) MB(val string) ComputerBuilderI {
+	cb.mb = val
+	return cb
 }
 
-func (cb *ConcreteBuilder) InsertWindowsAndDoors() {
-	fmt.Println("Insert Windows And Doors - done!")
+func (cb ComputerBuilder) Build() Computer {
+	return Computer{
+		CPU: cb.cpu,
+		RAM: cb.ram,
+		MB:  cb.mb,
+	}
 }
 
-func RunBuilder() {
-	product := NewProduct("White House")
-	concreteBuilder := NewConcreteBuilder(*product)
-	director := NewDirector(concreteBuilder)
+// Второй класс, который реализует интерфейс
+type OfficeComputerBuilder struct {
+	ComputerBuilder
+}
 
-	director.Construct()
+func NewOfficeComputerBuilder() ComputerBuilderI {
+	return ComputerBuilder{}.CPU("intel pentium III").RAM(2).MB("kingston")
+}
+
+func (b *OfficeComputerBuilder) Build() Computer {
+	return Computer{
+		CPU: b.cpu,
+		RAM: b.ram,
+		MB:  b.mb,
+	}
+}
+
+// Класс Director, который будет распоряжаться строителем и отдавать ему команды в нужном порядке,
+// а строитель будет их выполнять;
+type Director struct {
+	computerBuilderI ComputerBuilderI
+}
+
+func NewDirector(b ComputerBuilderI) *Director {
+	return &Director{
+		computerBuilderI: b,
+	}
+}
+
+func (d *Director) SetComputer(build ComputerBuilderI) {
+	d.computerBuilderI = build
+}
+
+func (d *Director) BuildComputer() Computer {
+	return d.computerBuilderI.Build()
+}
+
+// Main
+func main() {
+	cb := NewComputerBuilder()
+	computer := cb.CPU("core i3").RAM(8).MB("gigabyte").Build()
+	fmt.Println("custom pc:", computer)
+
+	officePC := NewOfficeComputerBuilder().Build()
+	fmt.Println("default office pc:", officePC)
+
+	myOfficePC := NewOfficeComputerBuilder().RAM(8).Build()
+	fmt.Println("custom office pc:", myOfficePC)
+
+	director := NewDirector(NewOfficeComputerBuilder())
+	com := director.BuildComputer()
+	fmt.Println("default office pc made by director:", com)
+
+	director.SetComputer(NewComputerBuilder().CPU("core i9").RAM(32).MB("gigabyte"))
+	com = director.BuildComputer()
+	fmt.Println("custom pc made by director:", com)
 }
