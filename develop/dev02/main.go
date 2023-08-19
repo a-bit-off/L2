@@ -19,6 +19,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -53,4 +54,31 @@ func Unpack1(str string) (string, error) {
 	}
 
 	return string(res), nil
+}
+
+func Unpack(str string) {
+	symbols := ""
+	slashes := ""
+	numbers := ""
+	for _, r := range str {
+		fmt.Println(r)
+		if unicode.IsLetter(r) {
+			symbols += string(r)
+		}
+		//if !unicode.IsDigit(r) && r != '\\' {
+		//	symbols += string(r)
+		//} else if r == '\\' {
+		//	slashes += string(r)
+		//} else {
+		//	numbers += string(r)
+		//}
+	}
+	fmt.Println("slashes:", slashes)
+	fmt.Println("symbols:", symbols)
+	fmt.Println("numbers:", numbers)
+}
+
+func main() {
+	str := "abcdef\\12"
+	Unpack(str)
 }
