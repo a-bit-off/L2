@@ -14,17 +14,17 @@ package main
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/beevik/ntp"
+	"log"
 )
 
 func main() {
 	// Получаем текущее точное время с использованием библиотеки NTP
-	ntpTime, err := ntp.Time("pool.ntp.org")
+	ntpTime, err := ntp.Time("pool.ntp.org") // адрес сервера NTP ("pool.ntp.org")
 	if err != nil {
 		log.Fatal("Ошибка при получении времени:", err)
 	}
 
-	fmt.Println("Точное время:", ntpTime.Format(time.RFC1123Z))
+	fmt.Println("Точное время:", ntpTime)
+
 }
