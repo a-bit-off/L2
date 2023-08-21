@@ -19,55 +19,74 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
-	"strings"
 	"unicode"
 )
 
-func Unpack(str string) (string, error) {
-	res := ""
-	number := ""
+func main() {
+	str := "45"
+	res, _ := unpackString(str)
+	fmt.Println(res)
+}
+
+func unpackString(str string) (string, error) {
+	buf := make([]byte, 0, len(str))
+	var number []byte
 	var slashCount int
 
-	for i := 0; i < len(str); i++ {
-		r := rune(str[i])
+	for _, r := range str {
 		if unicode.IsLetter(r) {
-			if number == "" {
-				res += string(r)
+			if len(number) == 0 {
+				buf = append(buf, byte(r)) // добавляем в результирующую строку символ, если не нужно дублировать
 			} else {
-				n, _ := strconv.Atoi(number)
-				var size int
-				if len(res) > 0 {
-					size = len(res) - 1
+				if err := addRepeat(&buf, &number); err != nil { // дублируем последний символ
+					return "", err
 				}
-				res += strings.Repeat(res[size:], n-1)
-				res += string(r)
-				number = ""
+				buf = append(buf, byte(r)) // добавляем текущий сивол
 			}
 			slashCount = 0
 		} else if unicode.IsDigit(r) {
-			if slashCount == 1 {
-				res += string(str[i])
-			} else {
-				number += string(str[i])
+			if slashCount == 1 { // если числу предшествует слеш то добавялем число в строку
+				buf = append(buf, byte(r))
+			} else { // если же слешей нет, то парсим число
+				number = append(number, byte(r))
 			}
 			slashCount = 0
 		} else if r == '\\' {
 			slashCount++
-			if slashCount == 2 {
-				res += string(str[i])
+			if slashCount == 2 { // если встречаем два слеша, то добавялем слеш в строку
+				buf = append(buf, byte(r))
 				slashCount = 0
 			}
 		}
 	}
-	if number != "" {
-		n, _ := strconv.Atoi(number)
-		var size int
-		if len(res) > 0 {
-			size = len(res) - 1
+
+	if len(number) > 0 { // для случаев "abcd12" дублируем последний символ "d"
+		if err := addRepeat(&buf, &number); err != nil {
+			return "", err
 		}
-		res += strings.Repeat(res[size:], n-1)
 	}
 
-	return res, nil
+	return string(buf), nil
+}
+
+func addRepeat(buf, number *[]byte) error {
+	n, err := strconv.ParseInt(string(*number), 10, 64) // парсим число
+	if err != nil {
+		return err
+	}
+	size := len(*buf)
+	if size == 0 {
+		return nil
+	} else if size > 0 {
+		size--
+	}
+
+	for i := 0; i < int(n-1); i++ { // дублируем символ
+		*buf = append(*buf, (*buf)[size])
+	}
+
+	*number = nil
+	return nil
 }
