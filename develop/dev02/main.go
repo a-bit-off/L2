@@ -19,17 +19,10 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
 )
-
-func main() {
-	str := "qwe\\45"
-	res, _ := Unpack(str)
-	fmt.Println(res)
-}
 
 func Unpack(str string) (string, error) {
 	res := ""
