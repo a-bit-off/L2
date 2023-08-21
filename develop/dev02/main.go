@@ -25,60 +25,56 @@ import (
 	"unicode"
 )
 
-func Unpack1(str string) (string, error) {
-	runes := []rune(str)
-	size := len(runes)
-	res := make([]rune, 0, size)
-	var symbol rune
-	var count []rune
+func main() {
+	str := "qwe\\45"
+	res, _ := Unpack(str)
+	fmt.Println(res)
+}
 
-	for i := 0; i < size; i++ {
-		if unicode.IsDigit(runes[i]) {
-			count = append(count, runes[i])
-		} else {
-			if len(count) == 0 {
-				symbol = runes[i]
-				res = append(res, runes[i])
+func Unpack(str string) (string, error) {
+	res := ""
+	number := ""
+	var slashCount int
+
+	for i := 0; i < len(str); i++ {
+		r := rune(str[i])
+		if unicode.IsLetter(r) {
+			if number == "" {
+				res += string(r)
 			} else {
-				c, _ := strconv.Atoi(string(count))
-				repeat := strings.Repeat(string(symbol), c-1)
-				res = append(res, []rune(repeat)...)
-
-				symbol = runes[i]
-				res = append(res, runes[i])
-
-				count = []rune("")
+				n, _ := strconv.Atoi(number)
+				var size int
+				if len(res) > 0 {
+					size = len(res) - 1
+				}
+				res += strings.Repeat(res[size:], n-1)
+				res += string(r)
+				number = ""
+			}
+			slashCount = 0
+		} else if unicode.IsDigit(r) {
+			if slashCount == 1 {
+				res += string(str[i])
+			} else {
+				number += string(str[i])
+			}
+			slashCount = 0
+		} else if r == '\\' {
+			slashCount++
+			if slashCount == 2 {
+				res += string(str[i])
+				slashCount = 0
 			}
 		}
-
 	}
-
-	return string(res), nil
-}
-
-func Unpack(str string) {
-	symbols := ""
-	slashes := ""
-	numbers := ""
-	for _, r := range str {
-		fmt.Println(r)
-		if unicode.IsLetter(r) {
-			symbols += string(r)
+	if number != "" {
+		n, _ := strconv.Atoi(number)
+		var size int
+		if len(res) > 0 {
+			size = len(res) - 1
 		}
-		//if !unicode.IsDigit(r) && r != '\\' {
-		//	symbols += string(r)
-		//} else if r == '\\' {
-		//	slashes += string(r)
-		//} else {
-		//	numbers += string(r)
-		//}
+		res += strings.Repeat(res[size:], n-1)
 	}
-	fmt.Println("slashes:", slashes)
-	fmt.Println("symbols:", symbols)
-	fmt.Println("numbers:", numbers)
-}
 
-func main() {
-	str := "abcdef\\12"
-	Unpack(str)
+	return res, nil
 }
