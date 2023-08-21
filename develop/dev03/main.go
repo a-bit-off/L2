@@ -55,8 +55,7 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println(args)
-	fmt.Println(data)
+
 	res := mySort(args, data)
 	for _, r := range res {
 		fmt.Println(r)
@@ -74,6 +73,7 @@ func getArgs() (*Args, error) {
 		return nil, fmt.Errorf("Укажите файл!")
 	}
 	filePath := os.Args[len(os.Args)-1]
+	//filePath := "files/case1_k.txt"
 
 	return &Args{lcK: *k, lcN: *n, lcR: *r, lcU: *u, filePath: filePath}, nil
 }
@@ -101,36 +101,44 @@ func mySort(args *Args, data []string) []string {
 	res := data
 
 	if args.lcK > 0 {
-		res = flagLcK(res, args.lcK)
-	}
-	if args.lcN {
+		res = flagLcK(res, args)
+	} else if args.lcR {
+		res = flagLcR(res)
+	} else if args.lcN {
 		res = flagLcN(res)
 	}
-	if args.lcR {
-		res = flagLcR(res)
-	}
+
 	if args.lcU {
 		res = flagLcU(data)
 	}
 	return res
 }
 
-func flagLcK(data []string, position int) []string {
+func flagLcK(data []string, args *Args) []string {
+	position := args.lcK
 	if position <= 0 {
 		return nil
 	}
 	position--
 	sort.Slice(data, func(i, j int) bool {
 		di := strings.Split(data[i], " ")
-		if len(di) < position {
+		if len(di) <= position {
+			if args.lcR {
+				return false
+			}
 			return true
 		}
 
 		dj := strings.Split(data[j], " ")
-		if len(dj) < position {
+		if len(dj) <= position {
+			if args.lcR {
+				return true
+			}
 			return false
 		}
-
+		if args.lcR {
+			return di[position] > dj[position]
+		}
 		return di[position] < dj[position]
 	})
 	return data
