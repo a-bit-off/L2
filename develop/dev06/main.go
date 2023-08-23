@@ -1,14 +1,3 @@
-package main
-
-import (
-	"bufio"
-	"flag"
-	"fmt"
-	"io"
-	"os"
-	"strings"
-)
-
 /*
 === Утилита cut ===
 
@@ -25,118 +14,154 @@ import (
 package main
 
 import (
-"bufio"
-"flag"
-"fmt"
-"io"
-"os"
-"strings"
+	"bufio"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"strings"
 )
 
-func grep(pattern string, lines []string, flags *Flags) []string {
-	var filteredLines []string
-
-	for i, line := range lines {
-		match := strings.Contains(line, pattern)
-
-		if flags.ignoreCase {
-			match = strings.Contains(strings.ToLower(line), strings.ToLower(pattern))
-		}
-
-		if (flags.invert && !match) || (!flags.invert && match) {
-			if flags.count {
-				flags.matchCount++
-			} else {
-				if flags.lineNum {
-					line = fmt.Sprintf("%d:%s", i+1, line)
-				}
-				filteredLines = append(filteredLines, line)
-			}
-		}
-	}
-
-	return filteredLines
+// Args ...
+type Args struct {
+	flags Flags
+	files []string
 }
 
+// Flags ...
 type Flags struct {
-	after      int
-	before     int
-	context    int
-	count      bool
-	ignoreCase bool
-	invert     bool
-	fixed      bool
-	lineNum    bool
-	matchCount int
+	fields    int
+	delimiter string
+	separated bool
 }
 
 func main() {
-	afterPtr := flag.Int("A", 0, "Print +N lines after match")
-	beforePtr := flag.Int("B", 0, "Print +N lines before match")
-	contextPtr := flag.Int("C", 0, "Print ±N lines around match")
-	countPtr := flag.Bool("c", false, "Print count of matching lines")
-	ignoreCasePtr := flag.Bool("i", false, "Ignore case")
-	invertPtr := flag.Bool("v", false, "Invert match")
-	fixedPtr := flag.Bool("F", false, "Fixed string match")
-	lineNumPtr := flag.Bool("n", false, "Print line numbers")
+	args := getArgs()
 
+	res, err := processFile(args)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	for _, v := range res {
+		printLines(v)
+	}
+
+}
+
+func getArgs() *Args {
+	fieldsPtr := flag.Int("f", 0, "выбрать поля (колонки)")
+	delimiterPtr := flag.String("d", "\t", "использовать другой разделитель")
+	separatedPtr := flag.Bool("s", false, "только строки с разделителем")
 	flag.Parse()
 
-	flags := Flags{
-		after:      *afterPtr,
-		before:     *beforePtr,
-		context:    *contextPtr,
-		count:      *countPtr,
-		ignoreCase: *ignoreCasePtr,
-		invert:     *invertPtr,
-		fixed:      *fixedPtr,
-		lineNum:    *lineNumPtr,
-	}
+	files := flag.Args()[0:]
 
-	pattern := flag.Arg(0)
-	files := flag.Args()[1:]
-
-	if pattern == "" {
-		fmt.Println("Pattern is required")
-		return
-	}
-
-	if len(files) == 0 {
-		filteredLines := grep(pattern, readLines(os.Stdin), &flags)
-		printLines(filteredLines, flags)
-	} else {
-		for _, file := range files {
-			f, err := os.Open(file)
-			if err != nil {
-				fmt.Printf("Failed to open file: %s\n", file)
-				continue
-			}
-
-			filteredLines := grep(pattern, readLines(f), &flags)
-			printLines(filteredLines, flags)
-
-			f.Close()
-		}
-	}
-
-	if flags.count {
-		fmt.Printf("Match count: %d\n", flags.matchCount)
+	return &Args{
+		flags: Flags{
+			fields:    *fieldsPtr,
+			delimiter: *delimiterPtr,
+			separated: *separatedPtr,
+		},
+		files: files,
 	}
 }
 
-func readLines(r io.Reader) []string {
+func processFile(args *Args) ([][]string, error) {
+	var res [][]string
+	for _, file := range args.files {
+		lines, err := scanFile(file)
+		if err != nil {
+			return nil, err
+		}
+		filteredLines := cat(args, lines)
+		res = append(res, filteredLines)
+	}
+
+	return res, nil
+}
+
+func scanFile(file string) ([]string, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
 	var lines []string
-	scanner := bufio.NewScanner(r)
+	scanner := bufio.NewScanner(f)
 
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
 
-	return lines
+	return lines, nil
 }
 
-func printLines(lines []string, flags Flags) {
-	for _, line := range lines {
+func printLines(filteredLines []string) {
+	for _, line := range filteredLines {
 		fmt.Println(line)
 	}
+}
+
+func cat(args *Args, lines []string) []string {
+	var res []string
+	sep := 0
+	for _, line := range lines {
+
+		// flag -s
+		if flagSeparated(args, line, &sep) {
+			continue
+		}
+
+		// flag -f
+		if args.flags.fields > 0 && line != "" {
+			if l := flagFields(args, line); l != "" {
+				res = append(res, l)
+			} else {
+				sep++
+			}
+			continue
+		}
+
+		// flag -d
+		if args.flags.delimiter != "" {
+			res = append(res, flagDelimiter(args, line))
+			continue
+		}
+
+		res = append(res, line)
+	}
+	return res
+}
+
+func flagSeparated(args *Args, line string, sep *int) bool {
+	if args.flags.separated {
+		if line == "" {
+			*sep++
+			if *sep > 1 {
+				return true
+			}
+		} else {
+			*sep = 0
+		}
+	}
+	return false
+}
+
+func flagFields(args *Args, line string) string {
+	f := args.flags.fields - 1
+
+	split := strings.Split(line, " ")
+	if f >= len(split) {
+		return ""
+	}
+
+	return split[f]
+}
+
+func flagDelimiter(args *Args, line string) string {
+	newStr, _ := strconv.Unquote(`"` + strings.ReplaceAll(line, " ", args.flags.delimiter) + `"`)
+	return newStr
 }
