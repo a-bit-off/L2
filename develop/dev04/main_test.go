@@ -5,11 +5,25 @@ import (
 	"testing"
 )
 
-func TestFindAnagrams(t *testing.T) {
+func TestFindAnagrams_1(t *testing.T) {
 	words := []string{"cat", "dog", "tac", "god", "act"}
 	expected := map[string][]string{
 		"act": {"act", "cat", "tac"},
 		"dgo": {"dog", "god"},
+	}
+
+	result := findAnagrams(words)
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected %v, but got %v", expected, result)
+	}
+}
+
+func TestFindAnagrams_2(t *testing.T) {
+	words := []string{"Пятак", "пяткА", "тяпка", "тяпка", "листок", "слиток", "столик", "пес"}
+	expected := map[string][]string{
+		"акптя":  {"пятак", "пятка", "тяпка"},
+		"иклост": {"листок", "слиток", "столик"},
 	}
 
 	result := findAnagrams(words)

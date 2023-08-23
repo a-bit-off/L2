@@ -25,7 +25,8 @@ import (
 )
 
 func main() {
-	words := []string{"Пятак", "пяткА", "тяпка", "тяпка", "листок", "слиток", "столик"}
+	words := []string{"Пятак", "пяткА", "тяпка", "тяпка", "листок", "слиток", "столик", "пес"}
+
 	anagrams := findAnagrams(words)
 
 	for k, v := range anagrams {
