@@ -25,8 +25,7 @@ import (
 )
 
 func main() {
-	str := "45"
-	res, _ := unpackString(str)
+	res, _ := unpackString("䙐䨸丠刈嗰4")
 	fmt.Println(res)
 }
 
