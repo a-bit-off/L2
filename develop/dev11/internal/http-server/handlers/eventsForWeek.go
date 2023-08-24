@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// EventsForWeek ...
 func EventsForWeek(store *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {

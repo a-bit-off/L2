@@ -41,7 +41,7 @@ import (
 
 	"dev11/internal/config"
 	"dev11/internal/http-server/handlers"
-	"dev11/internal/http-server/logReq"
+	"dev11/internal/http-server/logreq"
 )
 
 func main() {
@@ -72,14 +72,14 @@ func initStorage() *storage.Storage {
 
 func initHandlers(store *storage.Storage) {
 	// POST
-	http.HandleFunc("/create_event", logReq.LogRequest(handlers.CreateEvent(store)))
-	http.HandleFunc("/update_event", logReq.LogRequest(handlers.UpdateEvent(store)))
-	http.HandleFunc("/delete_event", logReq.LogRequest(handlers.DeleteEvent(store)))
+	http.HandleFunc("/create_event", logreq.LogRequest(handlers.CreateEvent(store)))
+	http.HandleFunc("/update_event", logreq.LogRequest(handlers.UpdateEvent(store)))
+	http.HandleFunc("/delete_event", logreq.LogRequest(handlers.DeleteEvent(store)))
 
 	// GET
-	http.HandleFunc("/events_for_day", logReq.LogRequest(handlers.EventsForDay(store)))
-	http.HandleFunc("/events_for_week", logReq.LogRequest(handlers.EventsForWeek(store)))
-	http.HandleFunc("/events_for_month", logReq.LogRequest(handlers.EventsForMonth(store)))
+	http.HandleFunc("/events_for_day", logreq.LogRequest(handlers.EventsForDay(store)))
+	http.HandleFunc("/events_for_week", logreq.LogRequest(handlers.EventsForWeek(store)))
+	http.HandleFunc("/events_for_month", logreq.LogRequest(handlers.EventsForMonth(store)))
 
 	log.Println("Handlers init successful!")
 }

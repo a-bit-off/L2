@@ -6,13 +6,14 @@ import (
 	"os"
 )
 
+// Config ...
 type Config struct {
 	Env  string `yaml:"env" env-default:"local"`
 	Host string `yaml:"host" env-default:"localhost"`
 	Port string `yaml:"port" env-default:"8080"`
 }
 
-// Panic
+// MustLoad Panic ...
 func MustLoad(configPath string) *Config {
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH is not set")

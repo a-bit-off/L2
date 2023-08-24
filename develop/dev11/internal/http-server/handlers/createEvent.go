@@ -8,6 +8,7 @@ import (
 	"dev11/internal/storage"
 )
 
+// CreateEvent ...
 func CreateEvent(store *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
