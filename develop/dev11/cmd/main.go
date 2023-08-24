@@ -35,20 +35,39 @@ package main
 
 import (
 	"dev11/internal/storage"
+	"flag"
+	"log"
 	"net/http"
 
+	"dev11/internal/config"
 	"dev11/internal/http-server/handlers"
 	"dev11/internal/http-server/logReq"
 )
 
 func main() {
+	// init config
+	cfg := initConfig()
+
+	// init storage
 	store := initStorage()
+
+	// init handlers
 	initHandlers(store)
-	initServer()
+
+	//init server
+	initServer(cfg)
+}
+
+func initConfig() *config.Config {
+	configPath := flag.String("CONFIG_PATH", "../config/config.yml", "path to config")
+	flag.Parse()
+	return config.MustLoad(*configPath)
 }
 
 func initStorage() *storage.Storage {
-	return storage.NewStorage()
+	store := storage.NewStorage()
+	log.Println("Storage init successful!")
+	return store
 }
 
 func initHandlers(store *storage.Storage) {
@@ -58,11 +77,14 @@ func initHandlers(store *storage.Storage) {
 	http.HandleFunc("/delete_event", logReq.LogRequest(handlers.DeleteEvent(store)))
 
 	// GET
-	//http.HandleFunc("/events_for_day", handlers.EventsForDay)
-	//http.HandleFunc("/events_for_week", handlers.EventsForWeek)
-	//http.HandleFunc("/events_for_month", handlers.EventsForMonth)
+	http.HandleFunc("/events_for_day", logReq.LogRequest(handlers.EventsForDay(store)))
+	http.HandleFunc("/events_for_week", logReq.LogRequest(handlers.EventsForWeek(store)))
+	http.HandleFunc("/events_for_month", logReq.LogRequest(handlers.EventsForMonth(store)))
+
+	log.Println("Handlers init successful!")
 }
 
-func initServer() {
-	http.ListenAndServe(":8080", nil)
+func initServer(cfg *config.Config) {
+	log.Println("Server listening")
+	http.ListenAndServe(":"+cfg.Port, nil)
 }

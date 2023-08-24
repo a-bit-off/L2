@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -13,6 +14,11 @@ import (
 
 type Storage struct {
 	Users map[int]map[int]time.Time `json:"users"`
+}
+
+type DateInfo struct {
+	EventID int
+	Date    time.Time
 }
 
 func NewStorage() *Storage {
@@ -65,4 +71,67 @@ func (s *Storage) Update(userID, eventID int, date string) error {
 	s.Users[userID][eventID] = dateTime
 
 	return nil
+}
+
+func (s *Storage) ForDay(userID, eventDay int) (string, error) {
+	if _, ok := s.Users[userID]; !ok {
+		return "", fmt.Errorf("user id not found")
+	}
+
+	var dates []DateInfo
+	for k, v := range s.Users[userID] {
+		_, _, d := v.Date()
+		if d == eventDay {
+			dates = append(dates, DateInfo{EventID: k, Date: v})
+		}
+	}
+
+	byt, err := json.Marshal(&dates)
+	if err != nil {
+		return "", err
+	}
+
+	return string(byt), nil
+}
+
+func (s *Storage) ForWeek(userID, eventWeek int) (string, error) {
+	if _, ok := s.Users[userID]; !ok {
+		return "", fmt.Errorf("user id not found")
+	}
+
+	var dates []DateInfo
+	for k, v := range s.Users[userID] {
+		_, w := v.ISOWeek()
+		if w == eventWeek {
+			dates = append(dates, DateInfo{EventID: k, Date: v})
+		}
+	}
+
+	byt, err := json.Marshal(&dates)
+	if err != nil {
+		return "", err
+	}
+
+	return string(byt), nil
+}
+
+func (s *Storage) ForMonth(userID, eventMonth int) (string, error) {
+	if _, ok := s.Users[userID]; !ok {
+		return "", fmt.Errorf("user id not found")
+	}
+
+	var dates []DateInfo
+	for k, v := range s.Users[userID] {
+		_, m, _ := v.Date()
+		if int(m) == eventMonth {
+			dates = append(dates, DateInfo{EventID: k, Date: v})
+		}
+	}
+
+	byt, err := json.Marshal(&dates)
+	if err != nil {
+		return "", err
+	}
+
+	return string(byt), nil
 }

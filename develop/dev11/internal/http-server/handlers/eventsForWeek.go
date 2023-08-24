@@ -7,9 +7,9 @@ import (
 	"strconv"
 )
 
-func UpdateEvent(store *storage.Storage) http.HandlerFunc {
+func EventsForWeek(store *storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
+		if r.Method != http.MethodGet {
 			SendResponse(w, http.StatusMethodNotAllowed, Response{Error: "method error"})
 			return
 		}
@@ -27,31 +27,31 @@ func UpdateEvent(store *storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		eventID, err := strconv.Atoi(r.FormValue("event_id"))
+		eventWeek, err := strconv.Atoi(r.FormValue("event_week"))
 		if err != nil {
 			SendResponse(w, http.StatusBadRequest, Response{Error: "convert error"})
 			return
 		}
 
-		date := r.FormValue("date")
-
 		// Валидируем параметры
-		if userID <= 0 || eventID <= 0 || date == "" {
+		if userID <= 0 || eventWeek <= 0 {
 			SendResponse(w, http.StatusBadRequest, Response{Error: "validate error"})
 			return
 		}
 
-		// Обновляем новые данные в хранилище
-		if err = store.Update(userID, eventID, date); err != nil {
-			SendResponse(w, http.StatusBadRequest, Response{Error: "event update error"})
+		// Ищем данные в хранилище
+		dates, err := store.ForWeek(userID, eventWeek)
+		if err != nil {
+			SendResponse(w, http.StatusBadRequest, Response{Error: "event for week error"})
 			return
 		}
 
 		// Возвращаем результат
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		SendResponse(w, http.StatusOK, Response{Result: "event update successful!"})
+		SendResponse(w, http.StatusOK, Response{Result: dates})
 
-		log.Println("event update successful!")
+		log.Println("event for week successful!")
+
 	}
 }

@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"dev11/internal/storage"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -50,7 +50,6 @@ func DeleteEvent(store *storage.Storage) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		SendResponse(w, http.StatusOK, Response{Result: "event deleted successful!"})
 
-		fmt.Println("DELETE:", store)
-
+		log.Println("event deleted successful!")
 	}
 }

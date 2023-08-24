@@ -1,0 +1,3 @@
+env: "local" # local, dev, prod
+host: localhost
+port: 8080

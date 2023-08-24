@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -53,6 +53,6 @@ func CreateEvent(store *storage.Storage) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		SendResponse(w, http.StatusOK, Response{Result: "event add successful!"})
 
-		fmt.Println("ADD:", store)
+		log.Println("event add successful!")
 	}
 }
