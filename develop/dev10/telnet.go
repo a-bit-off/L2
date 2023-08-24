@@ -33,6 +33,7 @@ import (
 	"time"
 )
 
+// Args ...
 type Args struct {
 	timeout time.Duration
 	host    string
